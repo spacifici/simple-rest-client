@@ -23,8 +23,10 @@ import it.pacs.rest.annotatios.PathParam;
 import it.pacs.rest.annotatios.QueryParam;
 import it.pacs.rest.interfaces.RestClientInterface;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -34,32 +36,78 @@ import java.net.URL;
 public class RestMethod {
 	private Method method;
 	private RestClientInterface handler;
+	private QueryBuilder queryBuilder = new QueryBuilder();
+	private PathBuilder pathBuilder = null;
 
 	public RestMethod(RestClientInterface handler, Method method) {
 		this.handler = handler;
 		this.method = method;
+
+		Path path = method.getAnnotation(Path.class);
+		if (path != null && !path.value().isEmpty()) {
+			pathBuilder = new PathBuilder(path.value());
+		}
+
+		initBuilders();
 	}
 
-	private URL buildUrl(Object[] args) {
+	/**
+	 * Init path and query builders by scan method parameters annotations
+	 */
+	private void initBuilders() {
 		Annotation[][] paramsAnnotations = method.getParameterAnnotations();
-		if (paramsAnnotations.length != args.length)
-			throw new RuntimeException("Wrong number of arguments");
-
-		Path pathAnn = method.getAnnotation(Path.class);
-		String path = pathAnn != null ? pathAnn.value() : null;
-		for (int i = 0; i < args.length; i++) {
+		for (int i = 0; i < paramsAnnotations.length; i++) {
 			for (Annotation annotation : paramsAnnotations[i]) {
-				if (path != null && PathParam.class.equals(annotation)) {
+				if (annotation.annotationType().equals(PathParam.class)
+						&& pathBuilder != null) {
 					PathParam param = (PathParam) annotation;
-					path = path.replace("{" + param.value() + "}",
-							args[i].toString());
+					pathBuilder.addParam(param.value(), i);
+				}
+				if (annotation.annotationType().equals(QueryParam.class)) {
+					QueryParam param = (QueryParam) annotation;
+					queryBuilder.addParam(param.value(), i);
 				}
 			}
 		}
-		return null;
 	}
 
-	public Method getMethod() {
+	/**
+	 * Using PathBuilder and QueryBuilder, it build the url to the rest service
+	 * you want to call.
+	 * 
+	 * @param args
+	 *            Those are the arguments passed to the interface method
+	 * @return an {@link URL} to the rest service
+	 * @throws UnsupportedEncodingException
+	 *             if UTF-8 codec is not supported
+	 * @throws MalformedURLException
+	 *             if we do not obtain a valid URL by concatenating base url,
+	 *             path and query
+	 */
+	protected URL buildUrl(Object[] args) throws UnsupportedEncodingException,
+			MalformedURLException {
+		StringBuilder builder = new StringBuilder();
+		String baseUrl = handler.getBaseUrl();
+		// Remove extra slashes at the end
+		while (baseUrl.endsWith("/"))
+			baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+		builder.append(baseUrl);
+
+		String path = pathBuilder != null ? pathBuilder.buildPath(args) : "";
+		// Remove extra slashes at begin
+		while (path.startsWith("/"))
+			path = path.substring(1);
+		if (!path.isEmpty())
+			builder.append("/").append(path);
+
+		String query = queryBuilder.buildQueryString(args);
+		if (!query.isEmpty())
+			builder.append("?").append(query);
+
+		return new URL(builder.toString());
+	}
+
+	protected Method getMethod() {
 		return method;
 	}
 }

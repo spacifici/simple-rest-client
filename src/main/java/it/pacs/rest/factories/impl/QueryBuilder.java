@@ -23,6 +23,8 @@ import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.gson.Gson;
+
 /**
  * Helps to build query part of the url
  * 
@@ -31,6 +33,8 @@ import java.util.List;
  */
 public class QueryBuilder {
 
+	private static Gson gson = new Gson();
+	
 	/**
 	 * A couple of name and index
 	 */
@@ -45,7 +49,7 @@ public class QueryBuilder {
 	}
 
 	private List<NameAndIndex> params = new LinkedList<NameAndIndex>();
-	
+
 	/**
 	 * Add a parameter name and its index to the query builder
 	 * 
@@ -54,36 +58,43 @@ public class QueryBuilder {
 	 * @param index
 	 *            parameter index
 	 */
-	public void add(String name, int index) {
+	public void addParam(String name, int index) {
 		params.add(new NameAndIndex(name, index));
 	}
 
 	/**
+	 * Build the query string, encoding it if is needed
+	 * 
 	 * @param args
-	 * @return
+	 *            Arguments to be associated
+	 * @return the eventually url encoded query string
+	 * @throws UnsupportedEncodingException 
 	 */
-	public String getQueryString(Object[] args) {
+	public String buildQueryString(Object[] args) throws UnsupportedEncodingException {
 		StringBuilder builder = new StringBuilder();
 		String divider = "";
 		for (NameAndIndex nai : params)
 			if (nai.index < args.length) {
-				try {
-					String nameEnc = URLEncoder.encode(nai.name, "UTF-8");
-					String paramEnc = URLEncoder.encode(paramToString(args[nai.index]), "UTF-8");
-					builder.append(divider).append(nameEnc).append("=").append(paramEnc);
-					divider = "&";
-				} catch (UnsupportedEncodingException e) {
-					// Nothing to do here;
-				}
+				String nameEnc = URLEncoder.encode(nai.name, "UTF-8");
+				String paramEnc = URLEncoder.encode(
+						paramToString(args[nai.index]), "UTF-8");
+				builder.append(divider).append(nameEnc).append("=")
+						.append(paramEnc);
+				divider = "&";
 			}
 		return builder.toString();
 	}
 
 	/**
-	 * @param object
-	 * @return
+	 * Convert the given object to a string
+	 * 
+	 * @param object the object to convert
+	 * @return a string representation
 	 */
 	private String paramToString(Object object) {
-		return object.toString();
+		if (object.getClass().isPrimitive() || object instanceof String)
+			return object.toString();
+		String result = gson.toJson(object);
+		return result;
 	}
 }
