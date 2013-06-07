@@ -22,21 +22,20 @@ import it.pacs.rest.annotatios.RestService;
 
 /**
  * @author Stefano Pacifici
- *
  */
 public interface RestClientInterface {
 
-	/**
-	 * Return the base url assigneg by {@link RestService} annotation
-	 * @return the base url or null if no url was specified
-	 */
-	String getBaseUrl();
+    /**
+     * Return the base url assigned by {@link RestService} annotation
+     *
+     * @return the base url or null if no url was specified
+     */
+    String getBaseUrl();
 
-	/**
-	 * Set the base url for this client
-	 * 
-	 * @param baseUrl
-	 *            a string representing the base url
-	 */
-	void setBaseUrl(String baseUrl);
+    /**
+     * Set the base url for this client
+     *
+     * @param baseUrl a string representing the base url
+     */
+    void setBaseUrl(String baseUrl);
 }

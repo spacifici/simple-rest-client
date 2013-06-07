@@ -29,52 +29,58 @@ import java.util.HashMap;
 
 /**
  * @author Stefano Pacifici
- * 
  */
 class RestInvocationHandler<T> implements InvocationHandler,
-		RestClientInterface {
+        RestClientInterface {
 
-	private String baseUrl;
-	private HashMap<String, RestMethod> methods = new HashMap<String, RestMethod>();
-	
-	
-	/**
-	 * @param clazz
-	 */
-	public RestInvocationHandler(Class<T> clazz) {
-		RestService restService = clazz.getAnnotation(RestService.class);
-		baseUrl = restService != null ? restService.value() : null;
-		
-		for (Method method: clazz.getMethods()) {
-			methods.put(method.toGenericString(), new GetMethod(this, method));
-		}
-	}
+    // The base url for all the requests
+    private String baseUrl;
+    // Maps method generic string to link RestMethod
+    private HashMap<String, RestMethod> methods = new HashMap<String, RestMethod>();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
-	 * java.lang.reflect.Method, java.lang.Object[])
-	 */
-	public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
-		if (method.getDeclaringClass().equals(RestClientInterface.class))
-			return method.invoke(this, args);
-		return null;
-	}
 
-	/* (non-Javadoc)
-	 * @see it.pacs.rest.interfaces.RestClientInterface#getBaseUrl()
-	 */
-	public String getBaseUrl() {
-		return baseUrl;
-	}
+    /**
+     * Build the RestInvocationHandler for the given interface
+     *
+     * @param clazz the interface
+     */
+    public RestInvocationHandler(Class<T> clazz) {
+        RestService restService = clazz.getAnnotation(RestService.class);
+        baseUrl = restService != null ? restService.value() : null;
 
-	/* (non-Javadoc)
-	 * @see it.pacs.rest.interfaces.RestClientInterface#setBaseUrl(java.lang.String)
-	 */
-	public void setBaseUrl(String baseUrl) {
-		this.baseUrl = baseUrl;
-	}
+        for (Method method : clazz.getMethods()) {
+            methods.put(method.toGenericString(), new GetMethod(this, method));
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
+     * java.lang.reflect.Method, java.lang.Object[])
+     */
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable {
+        if (method.getDeclaringClass().equals(RestClientInterface.class))
+            return method.invoke(this, args);
+        RestMethod restMethod = methods.get(method.toGenericString());
+        if (restMethod != null)
+            return restMethod.execute(method.getReturnType(), args);
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see it.pacs.rest.interfaces.RestClientInterface#getBaseUrl()
+     */
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    /* (non-Javadoc)
+     * @see it.pacs.rest.interfaces.RestClientInterface#setBaseUrl(java.lang.String)
+     */
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 
 }

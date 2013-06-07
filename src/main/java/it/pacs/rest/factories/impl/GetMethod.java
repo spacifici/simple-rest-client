@@ -20,20 +20,41 @@ package it.pacs.rest.factories.impl;
 
 import it.pacs.rest.interfaces.RestClientInterface;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
- * @author Stefano Pacifici
+ * Implements the basic GET method
  *
+ * @author Stefano Pacifici
  */
 public class GetMethod extends RestMethod {
 
-	/**
-	 * @param handler
-	 * @param method
-	 */
-	public GetMethod(RestClientInterface handler, Method method) {
-		super(handler, method);
-	}
+    /**
+     * @param handler
+     * @param method
+     */
+    public GetMethod(RestClientInterface handler, Method method) {
+        super(handler, method);
+    }
+
+    @Override
+    public Object execute(Class clazz, Object[] args) throws IOException {
+        URL url = buildUrl(args);
+        Object result = null;
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.connect();
+        try {
+            InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+            result = gson.fromJson(reader, clazz);
+            reader.close();
+        } finally {
+            connection.disconnect();
+        }
+        return result;
+    }
 
 }

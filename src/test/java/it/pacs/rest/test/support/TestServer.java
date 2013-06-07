@@ -18,53 +18,52 @@
  */
 package it.pacs.rest.test.support;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * @author Stefano Pacifici
- * 
  */
 public class TestServer {
 
-	Server server = new Server(8080);
+    Server server = new Server(8080);
 
-	public TestServer() {
-		server.setHandler(new TestHandler());
-	}
+    public TestServer() {
+        server.setHandler(new TestHandler());
+    }
 
-	public void start() throws Exception {
-		server.start();
-	}
+    public void start() throws Exception {
+        server.start();
+    }
 
-	public void stop() throws Exception {
-		server.stop();
-	}
+    public void stop() throws Exception {
+        server.stop();
+    }
 
-	private static class TestHandler extends AbstractHandler {
+    private static class TestHandler extends AbstractHandler {
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.jetty.server.Handler#handle(java.lang.String,
-		 * org.eclipse.jetty.server.Request,
-		 * javax.servlet.http.HttpServletRequest,
-		 * javax.servlet.http.HttpServletResponse)
-		 */
-		public void handle(String target, Request baseRequest,
-				HttpServletRequest request, HttpServletResponse response)
-				throws IOException, ServletException {
-			PrintWriter writer = response.getWriter();
-			writer.append("Hello, world!!!");
-		}
+        /*
+         * (non-Javadoc)
+         *
+         * @see org.eclipse.jetty.server.Handler#handle(java.lang.String,
+         * org.eclipse.jetty.server.Request,
+         * javax.servlet.http.HttpServletRequest,
+         * javax.servlet.http.HttpServletResponse)
+         */
+        public void handle(String target, Request baseRequest,
+                           HttpServletRequest request, HttpServletResponse response)
+                throws IOException, ServletException {
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_OK);
+            baseRequest.setHandled(true);
+            response.getWriter().println("\"Hello, world!\"");
+        }
 
-	}
+    }
 }
