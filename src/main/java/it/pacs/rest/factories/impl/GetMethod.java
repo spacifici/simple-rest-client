@@ -41,8 +41,10 @@ public class GetMethod extends RestMethod {
     private Object lastResult = null;
 
     /**
-     * @param restClient
-     * @param method
+     * Construct a new GetMethod
+     *
+     * @param restClient the underlying {@link RestClientInterface}
+     * @param method     the java method descriptor
      */
     public GetMethod(RestClientInterface restClient, Method method) {
         super(restClient, method);
@@ -54,9 +56,10 @@ public class GetMethod extends RestMethod {
 
     /**
      * Execute the GET request
+     *
      * @param clazz the return type of the interface method
      * @param args  the arguments passed to the interface proxy
-     * @return  The fetched object, the previously obtained object or null if an error occurred
+     * @return The fetched object, the previously obtained object or null if an error occurred
      * @throws IOException
      */
     @Override
@@ -95,4 +98,20 @@ public class GetMethod extends RestMethod {
         return result;
     }
 
+    /**
+     * Return true if the method was marker with the {@link Cached} annotation.
+     *
+     * @return true is the method is cached, false otherwise
+     */
+    public boolean isCached() {
+        return isCached;
+    }
+
+    /**
+     * Forgot the current cached data
+     */
+    public synchronized void clearCache() {
+        lastResult = null;
+        timestamp = -1;
+    }
 }

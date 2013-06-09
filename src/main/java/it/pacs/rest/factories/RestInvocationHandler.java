@@ -25,6 +25,7 @@ import it.pacs.rest.interfaces.RestClientInterface;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
 /**
@@ -37,7 +38,10 @@ class RestInvocationHandler<T> implements InvocationHandler,
     private String baseUrl;
     // Maps method generic string to link RestMethod
     private HashMap<String, RestMethod> methods = new HashMap<String, RestMethod>();
-
+    // The service interface
+    private Class<T> serviceInterface;
+    // The cache cleaner proxy
+    private Object cacheCleaner;
 
     /**
      * Build the RestInvocationHandler for the given interface
@@ -45,10 +49,33 @@ class RestInvocationHandler<T> implements InvocationHandler,
      * @param clazz the interface
      */
     public RestInvocationHandler(Class<T> clazz) {
+        serviceInterface = clazz;
         RestService restService = clazz.getAnnotation(RestService.class);
         baseUrl = restService != null ? restService.value() : null;
 
-        for (Method method : clazz.getMethods()) {
+
+        initMethods();
+        initCacheCleaner();
+    }
+
+    private void initCacheCleaner() {
+        cacheCleaner = Proxy.newProxyInstance(serviceInterface.getClassLoader(), new Class<?>[]{serviceInterface},
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        RestMethod restMethod = methods.get(method.toGenericString());
+                        if (restMethod != null && restMethod instanceof GetMethod) {
+                            GetMethod getMethod = (GetMethod) restMethod;
+                            if (getMethod.isCached())
+                                getMethod.clearCache();
+                        }
+                        return null;
+                    }
+                });
+    }
+
+    private void initMethods() {
+        for (Method method : serviceInterface.getMethods()) {
             methods.put(method.toGenericString(), new GetMethod(this, method));
         }
     }
@@ -81,6 +108,11 @@ class RestInvocationHandler<T> implements InvocationHandler,
      */
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    @Override
+    public Object cacheCleaner() {
+        return cacheCleaner;
     }
 
 }

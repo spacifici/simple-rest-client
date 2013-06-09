@@ -41,4 +41,11 @@ public interface RestClientInterface {
      * @param baseUrl a string representing the base url
      */
     void setBaseUrl(String baseUrl);
+
+    /**
+     * It returns a special Service implementation that clean cache.
+     *
+     * @return an Object
+     */
+    Object cacheCleaner();
 }

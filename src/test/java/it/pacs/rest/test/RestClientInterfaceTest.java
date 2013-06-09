@@ -20,20 +20,36 @@ package it.pacs.rest.test;
 
 import it.pacs.rest.factories.RestClientFactory;
 import it.pacs.rest.interfaces.RestClientInterface;
+import it.pacs.rest.test.support.TestServer;
 import it.pacs.rest.test.support.TestService;
 import junit.framework.TestCase;
 
 /**
  * Test {@link RestClientInterface}
+ *
  * @author Stefano Pacifici
  */
 public class RestClientInterfaceTest extends TestCase {
 
     private static final String localHost = "http://localhost:8080";
     private static final String localIP = "http://127.0.0.1:8080";
+    private TestService service = RestClientFactory.createClient(TestService.class);
+    private TestServer server;
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        server = new TestServer();
+        server.start();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        server.stop();
+    }
 
     public void testBaseUrlGetAndSet() {
-        TestService service = RestClientFactory.createClient(TestService.class);
         assertNotNull(service);
         RestClientInterface interf = (RestClientInterface) service;
         String baseUrl = interf.getBaseUrl();
@@ -41,6 +57,19 @@ public class RestClientInterfaceTest extends TestCase {
         assertTrue(localHost.equals(baseUrl));
         interf.setBaseUrl(localIP);
         assertTrue(localIP.equals(interf.getBaseUrl()));
+    }
+
+    public void testCacheCleaner() {
+        RestClientInterface interf = (RestClientInterface) service;
+        String result1 = service.method2();
+        String result2 = service.method2();
+        // Must be the same object
+        assertTrue(result1 == result2);
+
+        ((TestService) interf.cacheCleaner()).method2();
+        result2 = service.method2();
+        // Must not be the same object
+        assertTrue(result1 != result2);
     }
 
 }

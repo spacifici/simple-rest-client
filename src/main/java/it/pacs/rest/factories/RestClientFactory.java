@@ -23,21 +23,24 @@ import it.pacs.rest.interfaces.RestClientInterface;
 import java.lang.reflect.Proxy;
 
 /**
+ * Use this class to create your REST client.<br/>
+ *
  * @author Stefano Pacifici
- * 
  */
 public class RestClientFactory {
 
-	/**
-	 * @param class1
-	 * @return
-	 */
-	public static <T> T createClient(Class<T> clazz) {
-		@SuppressWarnings("unchecked")
-		T result = (T) Proxy.newProxyInstance(clazz.getClassLoader(),
-				new Class<?>[] { clazz, RestClientInterface.class },
-				new RestInvocationHandler<T>(clazz));
-		return result;
-	}
+    /**
+     * Create a REST client that implements the given interface.<br/>
+     * Every object returned by this factory also will implement {@link RestClientInterface}<br/>
+     *
+     * @param clazz The interface your rest service implements
+     * @return a REST client as described by your interface
+     */
+    public static <T> T createClient(Class<T> clazz) {
+        //noinspection unchecked
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(),
+                new Class<?>[]{clazz, RestClientInterface.class},
+                new RestInvocationHandler<T>(clazz));
+    }
 
 }
