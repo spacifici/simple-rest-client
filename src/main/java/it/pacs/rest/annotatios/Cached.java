@@ -15,30 +15,21 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
-package it.pacs.rest.interfaces;
+ */package it.pacs.rest.annotatios;
 
-import it.pacs.rest.annotatios.RestService;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Declare methods to set and get base REST service properties and some utility method.<br/>
- * Each concrete object returned by {@link it.pacs.rest.factories.RestClientFactory} will implement this interface.
+ * Mark a {@link GET} method as cached.<br/>
+ * The method are going to add "If-Modified-Since" header to the request.
  *
  * @author Stefano Pacifici
  */
-public interface RestClientInterface {
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Cached {
 
-    /**
-     * Return the base url assigned by {@link RestService} annotation
-     *
-     * @return the base url or null if no url was specified
-     */
-    String getBaseUrl();
-
-    /**
-     * Set the base url for this client
-     *
-     * @param baseUrl a string representing the base url
-     */
-    void setBaseUrl(String baseUrl);
 }

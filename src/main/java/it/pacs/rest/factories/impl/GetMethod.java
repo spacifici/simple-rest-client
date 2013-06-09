@@ -18,6 +18,7 @@
  */
 package it.pacs.rest.factories.impl;
 
+import it.pacs.rest.annotatios.Cached;
 import it.pacs.rest.interfaces.RestClientInterface;
 
 import java.io.IOException;
@@ -33,24 +34,61 @@ import java.net.URL;
  */
 public class GetMethod extends RestMethod {
 
+    private final boolean isCached;
+    // last successful get request timestamp
+    private long timestamp = -1l;
+    // the cached result
+    private Object lastResult = null;
+
     /**
-     * @param handler
+     * @param restClient
      * @param method
      */
-    public GetMethod(RestClientInterface handler, Method method) {
-        super(handler, method);
+    public GetMethod(RestClientInterface restClient, Method method) {
+        super(restClient, method);
+
+        // Fetch the reference for future use
+        Cached cachedAnnotation = method.getAnnotation(Cached.class);
+        isCached = cachedAnnotation != null;
     }
 
+    /**
+     * Execute the GET request
+     * @param clazz the return type of the interface method
+     * @param args  the arguments passed to the interface proxy
+     * @return  The fetched object, the previously obtained object or null if an error occurred
+     * @throws IOException
+     */
     @Override
     public Object execute(Class clazz, Object[] args) throws IOException {
         URL url = buildUrl(args);
-        Object result = null;
+        Object result = lastResult;
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        if (isCached && timestamp > 0)
+            connection.setIfModifiedSince(timestamp);
+        addHeaderParameters(connection, args);
         connection.connect();
         try {
-            InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-            result = gson.fromJson(reader, clazz);
-            reader.close();
+            int status = connection.getResponseCode();
+            switch (status) {
+                case HttpURLConnection.HTTP_OK:
+                    InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+                    result = gson.fromJson(reader, clazz);
+                    reader.close();
+                    // Atomically update the last result and its timestamp
+                    if (isCached)
+                        synchronized (this) {
+                            lastResult = result;
+                            timestamp = System.currentTimeMillis();
+                        }
+                    break;
+                case HttpURLConnection.HTTP_NOT_MODIFIED:
+                    // Return the previously fetched result
+                    result = lastResult;
+                    break;
+                default:
+                    return null;
+            }
         } finally {
             connection.disconnect();
         }

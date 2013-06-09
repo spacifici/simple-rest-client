@@ -16,29 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package it.pacs.rest.interfaces;
+package it.pacs.rest.test.support;
 
-import it.pacs.rest.annotatios.RestService;
+import it.pacs.rest.annotatios.*;
+
+import java.util.Map;
 
 /**
- * Declare methods to set and get base REST service properties and some utility method.<br/>
- * Each concrete object returned by {@link it.pacs.rest.factories.RestClientFactory} will implement this interface.
- *
  * @author Stefano Pacifici
  */
-public interface RestClientInterface {
+@RestService("http://localhost:8080")
+public interface TestService {
+    @GET
+    @Path("/test/method1/{pp1}/code/{pp2}")
+    Map<String, String> method1(@HeaderParam("hp") String headerParam,
+                                @PathParam("pp1") String pathParam1,
+                                @PathParam("pp2") String pathParam2,
+                                @QueryParam("qp1") String queryParam1,
+                                @QueryParam("qp2") String queryParam2);
 
-    /**
-     * Return the base url assigned by {@link RestService} annotation
-     *
-     * @return the base url or null if no url was specified
-     */
-    String getBaseUrl();
-
-    /**
-     * Set the base url for this client
-     *
-     * @param baseUrl a string representing the base url
-     */
-    void setBaseUrl(String baseUrl);
+    @GET
+    @Path("/test/method2")
+    @Cached
+    String method2();
 }

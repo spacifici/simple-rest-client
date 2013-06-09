@@ -19,6 +19,7 @@
 package it.pacs.rest.factories.impl;
 
 import com.google.gson.Gson;
+import it.pacs.rest.annotatios.HeaderParam;
 import it.pacs.rest.annotatios.Path;
 import it.pacs.rest.annotatios.PathParam;
 import it.pacs.rest.annotatios.QueryParam;
@@ -28,11 +29,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.TreeMap;
 
 /**
- * HTTP requests abstract base class, subclasses have to implement the {@link RestMethod#execute(Class, Object[])} method
+ * HTTP requests abstract base class, subclasses have to implement the {@link RestMethod#execute(Class, Object[])}
+ * method
  *
  * @author Stefano Pacifici
  */
@@ -43,13 +47,15 @@ public abstract class RestMethod {
      */
     protected static final Gson gson = new Gson();
 
-    private Method method;
-    private RestClientInterface handler;
+    protected final Method method;
+    protected final RestClientInterface restClient;
+
     private QueryBuilder queryBuilder = new QueryBuilder();
     private PathBuilder pathBuilder = null;
+    private HeaderBuilder headerBuilder = new HeaderBuilder();
 
-    public RestMethod(RestClientInterface handler, Method method) {
-        this.handler = handler;
+    public RestMethod(RestClientInterface restClient, Method method) {
+        this.restClient = restClient;
         this.method = method;
 
         Path path = method.getAnnotation(Path.class);
@@ -57,24 +63,29 @@ public abstract class RestMethod {
             pathBuilder = new PathBuilder(path.value());
         }
 
-        initBuilders();
+        initParameters();
     }
 
     /**
-     * Init path and query builders by scan method parameters annotations
+     * Init path builder, query builder and headers map by scan method parameters annotations
      */
-    private void initBuilders() {
+    private void initParameters() {
         Annotation[][] paramsAnnotations = method.getParameterAnnotations();
         for (int i = 0; i < paramsAnnotations.length; i++) {
             for (Annotation annotation : paramsAnnotations[i]) {
-                if (annotation.annotationType().equals(PathParam.class)
+                Class<?> annotationType = annotation.annotationType();
+                if (annotationType.equals(PathParam.class)
                         && pathBuilder != null) {
                     PathParam param = (PathParam) annotation;
                     pathBuilder.addParam(param.value(), i);
                 }
-                if (annotation.annotationType().equals(QueryParam.class)) {
+                if (annotationType.equals(QueryParam.class)) {
                     QueryParam param = (QueryParam) annotation;
                     queryBuilder.addParam(param.value(), i);
+                }
+                if (annotationType.equals(HeaderParam.class)) {
+                    HeaderParam param = (HeaderParam) annotation;
+                    headerBuilder.addParam(param.value(), i);
                 }
             }
         }
@@ -93,7 +104,7 @@ public abstract class RestMethod {
     protected URL buildUrl(Object[] args) throws UnsupportedEncodingException,
             MalformedURLException {
         StringBuilder builder = new StringBuilder();
-        String baseUrl = handler.getBaseUrl();
+        String baseUrl = restClient.getBaseUrl();
         // Remove extra slashes at the end
         while (baseUrl.endsWith("/"))
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
@@ -113,13 +124,15 @@ public abstract class RestMethod {
         return new URL(builder.toString());
     }
 
-    /**
-     * @return the interface {@link Method} descriptor
-     */
-    protected Method getMethod() {
-        return method;
-    }
 
+    /**
+     * Add header parameters to the request
+     * @param connection the request connection to fill
+     * @param args method arguments array
+     */
+    protected void addHeaderParameters(HttpURLConnection connection, Object[] args) {
+        headerBuilder.addHeaders(connection, args);
+    }
 
     /**
      * Execute the HTTP request associated with this method

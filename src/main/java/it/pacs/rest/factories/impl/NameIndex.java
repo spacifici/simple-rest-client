@@ -16,29 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package it.pacs.rest.interfaces;
-
-import it.pacs.rest.annotatios.RestService;
+package it.pacs.rest.factories.impl;
 
 /**
- * Declare methods to set and get base REST service properties and some utility method.<br/>
- * Each concrete object returned by {@link it.pacs.rest.factories.RestClientFactory} will implement this interface.
+ * An utility class representing a couple (String, Index)
  *
  * @author Stefano Pacifici
  */
-public interface RestClientInterface {
+final class NameIndex {
+    String name;
+    int index;
 
-    /**
-     * Return the base url assigned by {@link RestService} annotation
-     *
-     * @return the base url or null if no url was specified
-     */
-    String getBaseUrl();
-
-    /**
-     * Set the base url for this client
-     *
-     * @param baseUrl a string representing the base url
-     */
-    void setBaseUrl(String baseUrl);
+    public NameIndex(String name, int index) {
+        this.name = name;
+        this.index = index;
+    }
 }

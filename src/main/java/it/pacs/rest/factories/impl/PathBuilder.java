@@ -95,6 +95,7 @@ public class PathBuilder {
 
 	}
 
+    // Keep track of parameter name -> index relationship
 	private HashMap<String, Integer> paramsIndexes = new HashMap<String, Integer>();
 
 	private LinkedList<PathPart> parts;
@@ -111,7 +112,10 @@ public class PathBuilder {
 		parts = new LinkedList<PathPart>();
 		while (!parsePath.isEmpty()) {
 			int index = parsePath.indexOf('{');
-			if (index == 0) {
+            if (index < 0) {
+                parts.add(new StringPart(parsePath));
+                parsePath="";
+            } else if (index == 0) {
 				int l = parsePath.indexOf('}');
 				if (l < 0)
 					throw new IllegalArgumentException("Malformed path " + path);

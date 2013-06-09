@@ -34,21 +34,8 @@ import com.google.gson.Gson;
 public class QueryBuilder {
 
 	private static Gson gson = new Gson();
-	
-	/**
-	 * A couple of name and index
-	 */
-	static final class NameAndIndex {
-		String name;
-		int index;
 
-		public NameAndIndex(String name, int index) {
-			this.name = name;
-			this.index = index;
-		}
-	}
-
-	private List<NameAndIndex> params = new LinkedList<NameAndIndex>();
+    private List<NameIndex> params = new LinkedList<NameIndex>();
 
 	/**
 	 * Add a parameter name and its index to the query builder
@@ -59,7 +46,7 @@ public class QueryBuilder {
 	 *            parameter index
 	 */
 	public void addParam(String name, int index) {
-		params.add(new NameAndIndex(name, index));
+		params.add(new NameIndex(name, index));
 	}
 
 	/**
@@ -73,7 +60,7 @@ public class QueryBuilder {
 	public String buildQueryString(Object[] args) throws UnsupportedEncodingException {
 		StringBuilder builder = new StringBuilder();
 		String divider = "";
-		for (NameAndIndex nai : params)
+		for (NameIndex nai : params)
 			if (nai.index < args.length) {
 				String nameEnc = URLEncoder.encode(nai.name, "UTF-8");
 				String paramEnc = URLEncoder.encode(
