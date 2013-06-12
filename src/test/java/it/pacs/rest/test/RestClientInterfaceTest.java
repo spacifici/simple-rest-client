@@ -59,17 +59,4 @@ public class RestClientInterfaceTest extends TestCase {
         assertTrue(localIP.equals(interf.getBaseUrl()));
     }
 
-    public void testCacheCleaner() {
-        RestClientInterface interf = (RestClientInterface) service;
-        String result1 = service.method2();
-        String result2 = service.method2();
-        // Must be the same object
-        assertTrue(result1 == result2);
-
-        ((TestService) interf.cacheCleaner()).method2();
-        result2 = service.method2();
-        // Must not be the same object
-        assertTrue(result1 != result2);
-    }
-
 }

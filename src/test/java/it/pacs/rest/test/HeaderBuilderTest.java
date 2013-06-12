@@ -5,25 +5,23 @@ import junit.framework.TestCase;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Created with IntelliJ IDEA.
- * User: stefano
- * Date: 08/06/13
- * Time: 12.52
- * To change this template use File | Settings | File Templates.
+ * @author Stefano Pacifici
  */
 public class HeaderBuilderTest extends TestCase {
 
-    public void testHeaderBuilder() throws IOException {
+    public void testAddHeaders() throws IOException {
         HeaderBuilder builder = new HeaderBuilder();
 
         URL url = new URL("http://localhost");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        builder.addParam("string", 0);
+        builder.addParam("number", 1);
+        builder.addHeaders(connection, new Object[]{"test string", 12});
 
-        builder.addHeaders(connection, new Object[] { "test string", 12 });
-
+        assertEquals("test string", connection.getRequestProperty("string"));
+        assertEquals("12", connection.getRequestProperty("number"));
     }
 }

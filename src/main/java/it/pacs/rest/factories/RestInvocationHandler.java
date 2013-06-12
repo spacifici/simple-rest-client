@@ -19,13 +19,14 @@
 package it.pacs.rest.factories;
 
 import it.pacs.rest.annotatios.RestService;
+import it.pacs.rest.cache.SimpleMemoryCache;
 import it.pacs.rest.factories.impl.GetMethod;
 import it.pacs.rest.factories.impl.RestMethod;
+import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
 /**
@@ -40,8 +41,8 @@ class RestInvocationHandler<T> implements InvocationHandler,
     private HashMap<String, RestMethod> methods = new HashMap<String, RestMethod>();
     // The service interface
     private Class<T> serviceInterface;
-    // The cache cleaner proxy
-    private Object cacheCleaner;
+    // The cache (TODO May not be activated by default)
+    private static CacheInterface cache;
 
     /**
      * Build the RestInvocationHandler for the given interface
@@ -55,23 +56,6 @@ class RestInvocationHandler<T> implements InvocationHandler,
 
 
         initMethods();
-        initCacheCleaner();
-    }
-
-    private void initCacheCleaner() {
-        cacheCleaner = Proxy.newProxyInstance(serviceInterface.getClassLoader(), new Class<?>[]{serviceInterface},
-                new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        RestMethod restMethod = methods.get(method.toGenericString());
-                        if (restMethod != null && restMethod instanceof GetMethod) {
-                            GetMethod getMethod = (GetMethod) restMethod;
-                            if (getMethod.isCached())
-                                getMethod.clearCache();
-                        }
-                        return null;
-                    }
-                });
     }
 
     private void initMethods() {
@@ -110,9 +94,15 @@ class RestInvocationHandler<T> implements InvocationHandler,
         this.baseUrl = baseUrl;
     }
 
+    /**
+     * @return the cache associated with this interface
+     */
     @Override
-    public Object cacheCleaner() {
-        return cacheCleaner;
+    public CacheInterface getCache() {
+        return cache;
     }
 
+    static {
+        cache = new SimpleMemoryCache();
+    }
 }

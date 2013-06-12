@@ -19,9 +19,11 @@
 package it.pacs.rest.factories.impl;
 
 import it.pacs.rest.annotatios.Cached;
+import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
@@ -34,11 +36,8 @@ import java.net.URL;
  */
 public class GetMethod extends RestMethod {
 
+    // Does the method support caching
     private final boolean isCached;
-    // last successful get request timestamp
-    private long timestamp = -1l;
-    // the cached result
-    private Object lastResult = null;
 
     /**
      * Construct a new GetMethod
@@ -65,53 +64,42 @@ public class GetMethod extends RestMethod {
     @Override
     public Object execute(Class clazz, Object[] args) throws IOException {
         URL url = buildUrl(args);
-        Object result = lastResult;
+        Object result = null;
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        if (isCached && timestamp > 0)
-            connection.setIfModifiedSince(timestamp);
+        CacheInterface cache = isCached ? restClient.getCache() : null;
+        if (cache != null) {
+            long timestamp = cache.getUpdateTime(url);
+            if (timestamp > 0)
+                connection.setIfModifiedSince(timestamp);
+        }
         addHeaderParameters(connection, args);
         connection.connect();
         try {
             int status = connection.getResponseCode();
+            InputStream data;
             switch (status) {
                 case HttpURLConnection.HTTP_OK:
-                    InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-                    result = gson.fromJson(reader, clazz);
-                    reader.close();
-                    // Atomically update the last result and its timestamp
-                    if (isCached)
-                        synchronized (this) {
-                            lastResult = result;
-                            timestamp = System.currentTimeMillis();
-                        }
+                    data = connection.getInputStream();
+                    if (cache != null) {
+                        InputStream cacheInputStream = cache.put(url, data);
+                        data.close();
+                        data = cacheInputStream;
+                    }
                     break;
                 case HttpURLConnection.HTTP_NOT_MODIFIED:
-                    // Return the previously fetched result
-                    result = lastResult;
+                    data = cache != null ? cache.get(url) : null;
                     break;
                 default:
                     return null;
             }
+            if (data == null)
+                throw new IOException("Error fetching data");
+            InputStreamReader reader = new InputStreamReader(data);
+            result = gson.fromJson(reader, clazz);
+            reader.close();
         } finally {
             connection.disconnect();
         }
         return result;
-    }
-
-    /**
-     * Return true if the method was marker with the {@link Cached} annotation.
-     *
-     * @return true is the method is cached, false otherwise
-     */
-    public boolean isCached() {
-        return isCached;
-    }
-
-    /**
-     * Forgot the current cached data
-     */
-    public synchronized void clearCache() {
-        lastResult = null;
-        timestamp = -1;
     }
 }

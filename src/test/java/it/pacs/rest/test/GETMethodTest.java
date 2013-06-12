@@ -18,9 +18,7 @@
  */
 package it.pacs.rest.test;
 
-import it.pacs.rest.annotatios.*;
 import it.pacs.rest.factories.RestClientFactory;
-import it.pacs.rest.interfaces.RestClientInterface;
 import it.pacs.rest.test.support.TestServer;
 import it.pacs.rest.test.support.TestService;
 import junit.framework.TestCase;
@@ -33,8 +31,6 @@ import java.util.TreeMap;
  */
 public class GETMethodTest extends TestCase {
 
-    final static String localIP = "http://127.0.0.1:8080";
-    final static String localHost = "http://localhost:8080/";
     final static Map<String, String> paramsMap;
     private TestServer testServer = new TestServer();
 
@@ -72,12 +68,13 @@ public class GETMethodTest extends TestCase {
     public void testCachedGet() {
         TestService service = RestClientFactory.createClient(TestService.class);
         assertNotNull(service);
-
-        String result1 = service.method2();
+        String methodUri = "/test/method2?param=12";
+        String result1 = service.method2(12);
+        int stat = testServer.getStats(methodUri);
         assertNotNull(result1);
-        String result2 = service.method2();
-        // Must be the same object
-        assertTrue(result1 == result2);
+        service.method2(12);
+        // No more than one request has to been fired
+        assertEquals(stat + 1, testServer.getStats(methodUri));
     }
 
     static {

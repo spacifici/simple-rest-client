@@ -38,5 +38,5 @@ public interface TestService {
     @GET
     @Path("/test/method2")
     @Cached
-    String method2();
+    String method2(@QueryParam("param") int param);
 }

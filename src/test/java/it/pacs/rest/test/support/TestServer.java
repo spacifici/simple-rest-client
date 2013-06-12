@@ -27,13 +27,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author Stefano Pacifici
  */
 public class TestServer {
+
+    final Map<String, Integer> stats = new HashMap<String, Integer>();
 
     Server server = new Server(8080);
 
@@ -49,9 +52,14 @@ public class TestServer {
         server.stop();
     }
 
-    private static class TestHandler extends AbstractHandler {
+    public int getStats(String url) {
+        Integer stat = stats.get(url);
+        return stat != null ? stat : 0;
+    }
 
-        static Gson gson = new Gson();
+    private class TestHandler extends AbstractHandler {
+
+        Gson gson = new Gson();
 
         /*
          * (non-Javadoc)
@@ -64,6 +72,13 @@ public class TestServer {
         public void handle(String target, Request baseRequest,
                            HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
+            // Update stats
+            synchronized (stats) {
+                String uri = baseRequest.getUri().toString();
+                Integer stat = stats.get(uri);
+                stats.put(uri, stat != null ? stat + 1 : 1);
+            }
+
             if (target.startsWith("/test/method1")) {
                 handleTestMethod1(target, baseRequest, request, response);
                 baseRequest.setHandled(true);
@@ -74,6 +89,7 @@ public class TestServer {
             }
         }
 
+        @SuppressWarnings("UnusedParameters")
         private void handleTestMethod2(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
             long timestamp = baseRequest.getDateHeader("If-Modified-Since");
             if (timestamp > 0) {
@@ -85,19 +101,20 @@ public class TestServer {
             }
         }
 
+        @SuppressWarnings("UnusedParameters")
         private void handleTestMethod1(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-           response.setContentType("application/json");
-           LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-           result.put("path", target);
-           String queryString = request.getQueryString();
-           for (String queryParam : queryString.split("&")) {
-               String[] paramValue = queryParam.split("=");
-               result.put(paramValue[0], paramValue[1]);
-           }
-           result.put("hp", request.getHeader("hp"));
-           response.setStatus(HttpServletResponse.SC_OK);
-           response.getWriter().println(gson.toJson(result));
-       }
+            response.setContentType("application/json");
+            LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
+            result.put("path", target);
+            String queryString = request.getQueryString();
+            for (String queryParam : queryString.split("&")) {
+                String[] paramValue = queryParam.split("=");
+                result.put(paramValue[0], paramValue[1]);
+            }
+            result.put("hp", request.getHeader("hp"));
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().println(gson.toJson(result));
+        }
 
     }
 }

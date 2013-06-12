@@ -32,7 +32,6 @@ import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.TreeMap;
 
 /**
  * HTTP requests abstract base class, subclasses have to implement the {@link RestMethod#execute(Class, Object[])}
@@ -127,8 +126,9 @@ public abstract class RestMethod {
 
     /**
      * Add header parameters to the request
+     *
      * @param connection the request connection to fill
-     * @param args method arguments array
+     * @param args       method arguments array
      */
     protected void addHeaderParameters(HttpURLConnection connection, Object[] args) {
         headerBuilder.addHeaders(connection, args);

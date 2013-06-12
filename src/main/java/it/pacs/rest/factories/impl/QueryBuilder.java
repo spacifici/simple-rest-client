@@ -18,70 +18,65 @@
  */
 package it.pacs.rest.factories.impl;
 
+import com.google.gson.Gson;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 /**
  * Helps to build query part of the url
- * 
+ *
  * @author Stefano Pacifici
- * 
  */
 public class QueryBuilder {
 
-	private static Gson gson = new Gson();
+    private static Gson gson = new Gson();
 
     private List<NameIndex> params = new LinkedList<NameIndex>();
 
-	/**
-	 * Add a parameter name and its index to the query builder
-	 * 
-	 * @param name
-	 *            parameter name
-	 * @param index
-	 *            parameter index
-	 */
-	public void addParam(String name, int index) {
-		params.add(new NameIndex(name, index));
-	}
+    /**
+     * Add a parameter name and its index to the query builder
+     *
+     * @param name  parameter name
+     * @param index parameter index
+     */
+    public void addParam(String name, int index) {
+        params.add(new NameIndex(name, index));
+    }
 
-	/**
-	 * Build the query string, encoding it if is needed
-	 * 
-	 * @param args
-	 *            Arguments to be associated
-	 * @return the eventually url encoded query string
-	 * @throws UnsupportedEncodingException 
-	 */
-	public String buildQueryString(Object[] args) throws UnsupportedEncodingException {
-		StringBuilder builder = new StringBuilder();
-		String divider = "";
-		for (NameIndex nai : params)
-			if (nai.index < args.length) {
-				String nameEnc = URLEncoder.encode(nai.name, "UTF-8");
-				String paramEnc = URLEncoder.encode(
-						paramToString(args[nai.index]), "UTF-8");
-				builder.append(divider).append(nameEnc).append("=")
-						.append(paramEnc);
-				divider = "&";
-			}
-		return builder.toString();
-	}
+    /**
+     * Build the query string, encoding it if is needed
+     *
+     * @param args Arguments to be associated
+     * @return the eventually url encoded query string
+     * @throws UnsupportedEncodingException
+     */
+    public String buildQueryString(Object[] args) throws UnsupportedEncodingException {
+        StringBuilder builder = new StringBuilder();
+        String divider = "";
+        for (NameIndex nai : params)
+            if (nai.index < args.length) {
+                String nameEnc = URLEncoder.encode(nai.name, "UTF-8");
+                String paramEnc = URLEncoder.encode(
+                        paramToString(args[nai.index]), "UTF-8");
+                builder.append(divider).append(nameEnc).append("=")
+                        .append(paramEnc);
+                divider = "&";
+            }
+        return builder.toString();
+    }
 
-	/**
-	 * Convert the given object to a string
-	 * 
-	 * @param object the object to convert
-	 * @return a string representation
-	 */
-	private String paramToString(Object object) {
-		if (object.getClass().isPrimitive() || object instanceof String)
-			return object.toString();
-		String result = gson.toJson(object);
-		return result;
-	}
+    /**
+     * Convert the given object to a string
+     *
+     * @param object the object to convert
+     * @return a string representation
+     */
+    private String paramToString(Object object) {
+        if (object.getClass().isPrimitive() || object instanceof String)
+            return object.toString();
+        return gson.toJson(object);
+    }
 }

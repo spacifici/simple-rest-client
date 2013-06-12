@@ -43,9 +43,8 @@ public interface RestClientInterface {
     void setBaseUrl(String baseUrl);
 
     /**
-     * It returns a special Service implementation that clean cache.
-     *
-     * @return an Object
+     * @return the cache associated with this interface
      */
-    Object cacheCleaner();
+    CacheInterface getCache();
+
 }

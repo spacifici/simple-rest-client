@@ -25,129 +25,131 @@ import java.util.LinkedList;
 
 /**
  * Utility class to build the url path
- * 
+ *
  * @author Stefano Pacifici
- * 
  */
 public class PathBuilder {
 
-	interface PathPart {
-		String getPart(Object[] args) throws UnsupportedEncodingException;
-	}
+    interface PathPart {
+        String getPart(Object[] args) throws UnsupportedEncodingException;
+    }
 
-	static final class StringPart implements PathPart {
+    static final class StringPart implements PathPart {
 
-		private String part;
+        private String part;
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * it.pacs.rest.factories.impl.PathBuilder.PathPart#getPart(java.lang
-		 * .Object[])
-		 */
-		@Override
-		public String getPart(Object[] args) {
-			return part;
-		}
+        /*
+         * (non-Javadoc)
+         *
+         * @see
+         * it.pacs.rest.factories.impl.PathBuilder.PathPart#getPart(java.lang
+         * .Object[])
+         */
+        @Override
+        public String getPart(Object[] args) {
+            return part;
+        }
 
-		/**
-		 * 
-		 */
-		public StringPart(String part) {
-			this.part = part;
-		}
-	}
+        /**
+         *
+         */
+        public StringPart(String part) {
+            this.part = part;
+        }
+    }
 
-	final class ParamPart implements PathPart {
+    final class ParamPart implements PathPart {
 
-		private final String name;
+        private final String name;
 
-		/**
-		 * @param name
-		 */
-		public ParamPart(String name) {
-			this.name = name;
-		}
+        /**
+         * @param name the parameter name
+         */
+        public ParamPart(String name) {
+            this.name = name;
+        }
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * it.pacs.rest.factories.impl.PathBuilder.PathPart#getPart(java.lang
-		 * .Object[])
-		 */
-		@Override
-		public String getPart(Object[] args)
-				throws UnsupportedEncodingException {
-			Integer index = paramsIndexes.get(name);
-			Object object = index != null && index.intValue() < args.length ? args[index]
-					: null;
-			if (object instanceof Number)
-				return object.toString();
-			if (object instanceof String)
-				return URLEncoder.encode((String) object, "UTF-8");
-			throw new IllegalArgumentException(
-					"Wrong parameter "
-							+ name
-							+ ". Path parameters have to be a number or a string");
-		}
+        /*
+         * (non-Javadoc)
+         *
+         * @see
+         * it.pacs.rest.factories.impl.PathBuilder.PathPart#getPart(java.lang
+         * .Object[])
+         */
+        @Override
+        public String getPart(Object[] args)
+                throws UnsupportedEncodingException {
+            Integer index = paramsIndexes.get(name);
+            Object object = index != null && index < args.length ? args[index]
+                    : null;
+            if (object instanceof Number)
+                return object.toString();
+            if (object instanceof String)
+                return URLEncoder.encode((String) object, "UTF-8");
+            throw new IllegalArgumentException(
+                    "Wrong parameter "
+                            + name
+                            + ". Path parameters have to be a number or a string");
+        }
 
-	}
+    }
 
     // Keep track of parameter name -> index relationship
-	private HashMap<String, Integer> paramsIndexes = new HashMap<String, Integer>();
+    private HashMap<String, Integer> paramsIndexes = new HashMap<String, Integer>();
 
-	private LinkedList<PathPart> parts;
+    private LinkedList<PathPart> parts;
 
-	/**
-	 * Build a new PathBuilder by parsing the given path
-	 * 
-	 * @param path
-	 *            a string containing the raw path (ie
-	 *            "/root/{param1}/{param2}")
-	 */
-	public PathBuilder(String path) {
-		String parsePath = path;
-		parts = new LinkedList<PathPart>();
-		while (!parsePath.isEmpty()) {
-			int index = parsePath.indexOf('{');
+    /**
+     * Build a new PathBuilder by parsing the given path
+     *
+     * @param path a string containing the raw path (ie
+     *             "/root/{param1}/{param2}")
+     */
+    public PathBuilder(String path) {
+        String parsePath = path;
+        parts = new LinkedList<PathPart>();
+        while (!parsePath.isEmpty()) {
+            int index = parsePath.indexOf('{');
             if (index < 0) {
                 parts.add(new StringPart(parsePath));
-                parsePath="";
+                parsePath = "";
             } else if (index == 0) {
-				int l = parsePath.indexOf('}');
-				if (l < 0)
-					throw new IllegalArgumentException("Malformed path " + path);
-				String param = parsePath.substring(1, l);
-				parts.add(new ParamPart(param));
-				parsePath = parsePath.substring(l + 1);
-			} else {
-				parts.add(new StringPart(parsePath.substring(0, index)));
-				parsePath = parsePath.substring(index);
-			}
-		}
-	}
+                int l = parsePath.indexOf('}');
+                if (l < 0)
+                    throw new IllegalArgumentException("Malformed path " + path);
+                String param = parsePath.substring(1, l);
+                parts.add(new ParamPart(param));
+                parsePath = parsePath.substring(l + 1);
+            } else {
+                parts.add(new StringPart(parsePath.substring(0, index)));
+                parsePath = parsePath.substring(index);
+            }
+        }
+    }
 
-	/**
-	 * @param name
-	 * @param index
-	 */
-	public void addParam(String name, int index) {
-		paramsIndexes.put(name, index);
-	}
+    /**
+     * Add a parameter and an associated index to the {@link PathBuilder}
+     *
+     * @param name  the parameter name
+     * @param index the index inside the {@link PathBuilder#buildPath(Object[])} object array parameter
+     */
+    public void addParam(String name, int index) {
+        paramsIndexes.put(name, index);
+    }
 
-	/**
-	 * @param args
-	 * @return
-	 * @throws UnsupportedEncodingException
-	 */
-	public String buildPath(Object[] args) throws UnsupportedEncodingException {
-		StringBuilder builder = new StringBuilder();
-		for (PathPart part : parts) {
-			builder.append(part.getPart(args));
-		}
-		return builder.toString();
-	}
+    /**
+     * Build the path by substitute the indexed parameters in the path template string
+     *
+     * @param args an object array containing the parameters to fill the template
+     * @return the path
+     * @throws UnsupportedEncodingException
+     */
+    public String buildPath(Object[] args) throws UnsupportedEncodingException {
+        StringBuilder builder = new StringBuilder();
+        for (PathPart part : parts) {
+            builder.append(part.getPart(args));
+        }
+        return builder.toString();
+    }
 
 }

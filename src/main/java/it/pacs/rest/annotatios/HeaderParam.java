@@ -25,7 +25,8 @@ import java.lang.annotation.Target;
 
 /**
  * Mark a parameter as an Header parameter.<br/>
- * A header parameter is a key value pair added to the http request header.
+ * A header parameter is a key value pair added to the http request header. It doesn't contribute to calculate cache
+ * entry key.
  *
  * @author Stefano Pacifici
  */
@@ -35,7 +36,7 @@ public @interface HeaderParam {
     /**
      * The value of the header parameter as a string
      *
-     * @return
+     * @return the header key
      */
     String value() default "";
 }
