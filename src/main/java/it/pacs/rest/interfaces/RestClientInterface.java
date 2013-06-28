@@ -20,6 +20,9 @@ package it.pacs.rest.interfaces;
 
 import it.pacs.rest.annotatios.RestService;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 /**
  * Declare methods to set and get base REST service properties and some utility method.<br/>
  * Each concrete object returned by {@link it.pacs.rest.factories.RestClientFactory} will implement this interface.
@@ -41,6 +44,13 @@ public interface RestClientInterface {
      * @param baseUrl a string representing the base url
      */
     void setBaseUrl(String baseUrl);
+
+    /**
+     * Open a connection to the server
+     * @param url the url to open
+     * @return an {@link HttpURLConnection} instance
+     */
+    HttpURLConnection openConnection(URL url);
 
     /**
      * @return the cache associated with this interface

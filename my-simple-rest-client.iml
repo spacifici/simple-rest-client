@@ -18,6 +18,7 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-io:8.1.11.v20130520" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-util:8.1.11.v20130520" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
+    <orderEntry type="library" name="Maven: com.squareup.okhttp:okhttp:1.0.2" level="project" />
   </component>
 </module>
 

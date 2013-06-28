@@ -61,8 +61,9 @@ public class SimpleMemoryCache implements CacheInterface {
         byte[] data = outputStream.toByteArray();
         int size = data.length;
 
+        // Don't cache data bigger than the half of the cache
         if (size > maxCacheSize / 2)
-            return null;
+            return new ByteArrayInputStream(data);
 
         CacheEntry cacheEntry = new CacheEntry();
         cacheEntry.expireTime = expireTime;

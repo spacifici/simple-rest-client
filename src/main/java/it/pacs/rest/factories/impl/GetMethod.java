@@ -18,7 +18,7 @@
  */
 package it.pacs.rest.factories.impl;
 
-import it.pacs.rest.annotatios.Cached;
+import it.pacs.rest.annotatios.Cache;
 import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
 
@@ -49,8 +49,8 @@ public class GetMethod extends RestMethod {
         super(restClient, method);
 
         // Fetch the reference for future use
-        Cached cachedAnnotation = method.getAnnotation(Cached.class);
-        isCached = cachedAnnotation != null;
+        Cache cacheAnnotation = method.getAnnotation(Cache.class);
+        isCached = cacheAnnotation != null;
     }
 
     /**
@@ -81,12 +81,14 @@ public class GetMethod extends RestMethod {
                 case HttpURLConnection.HTTP_OK:
                     data = connection.getInputStream();
                     if (cache != null) {
+                        // TODO InputStream cacheInputStream = cache.put(connection, data);
                         InputStream cacheInputStream = cache.put(url, data);
                         data.close();
                         data = cacheInputStream;
                     }
                     break;
                 case HttpURLConnection.HTTP_NOT_MODIFIED:
+                    // TODO data = cache != null ? cache.get(connection) : null;
                     data = cache != null ? cache.get(url) : null;
                     break;
                 default:
