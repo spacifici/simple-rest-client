@@ -92,11 +92,13 @@ public class TestServer {
         @SuppressWarnings("UnusedParameters")
         private void handleTestMethod2(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
             long timestamp = baseRequest.getDateHeader("If-Modified-Since");
-            if (timestamp > 0) {
+            String etag = baseRequest.getHeader("If-None-Match");
+            if (timestamp > 0 || etag != null) {
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             } else {
                 response.setContentType("application/json");
                 response.setStatus(HttpServletResponse.SC_OK);
+                response.setHeader("ETag", "0000");
                 response.getWriter().println("\"example string\"");
             }
         }

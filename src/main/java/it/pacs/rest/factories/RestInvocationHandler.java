@@ -18,7 +18,6 @@
  */
 package it.pacs.rest.factories;
 
-import com.squareup.okhttp.HttpResponseCache;
 import com.squareup.okhttp.OkHttpClient;
 import it.pacs.rest.annotatios.RestService;
 import it.pacs.rest.cache.SimpleMemoryCache;
@@ -27,8 +26,6 @@ import it.pacs.rest.factories.impl.RestMethod;
 import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
@@ -41,16 +38,16 @@ import java.util.HashMap;
 class RestInvocationHandler<T> implements InvocationHandler,
         RestClientInterface {
 
+    // The OkHttpClient
+    private final static OkHttpClient client;
+    // The cache (TODO May not be activated by default)
+    private static CacheInterface cache;
     // The base url for all the requests
     private String baseUrl;
     // Maps method generic string to link RestMethod
     private HashMap<String, RestMethod> methods = new HashMap<String, RestMethod>();
     // The service interface
     private Class<T> serviceInterface;
-    // The OkHttpClient
-    private final static OkHttpClient client;
-    // The cache (TODO May not be activated by default)
-    private static CacheInterface cache;
 
     /**
      * Build the RestInvocationHandler for the given interface
@@ -61,8 +58,11 @@ class RestInvocationHandler<T> implements InvocationHandler,
         serviceInterface = clazz;
         RestService restService = clazz.getAnnotation(RestService.class);
         baseUrl = restService != null ? restService.value() : null;
-
+        // Remove extra slashes at the end
+        while (baseUrl != null && baseUrl.endsWith("/"))
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         initMethods();
+        cache = new SimpleMemoryCache();
     }
 
     private void initMethods() {

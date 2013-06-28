@@ -73,7 +73,6 @@ public class GETMethodTest extends TestCase {
         int stat = testServer.getStats(methodUri);
         assertNotNull(result1);
         service.method2(12);
-        // No more than one request has to been fired
         assertEquals(stat + 1, testServer.getStats(methodUri));
     }
 

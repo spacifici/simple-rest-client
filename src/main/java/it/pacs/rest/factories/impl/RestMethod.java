@@ -104,9 +104,6 @@ public abstract class RestMethod {
             MalformedURLException {
         StringBuilder builder = new StringBuilder();
         String baseUrl = restClient.getBaseUrl();
-        // Remove extra slashes at the end
-        while (baseUrl.endsWith("/"))
-            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         builder.append(baseUrl);
 
         String path = pathBuilder != null ? pathBuilder.buildPath(args) : "";

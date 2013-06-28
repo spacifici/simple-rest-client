@@ -21,6 +21,7 @@ package it.pacs.rest.factories.impl;
 import it.pacs.rest.annotatios.Cache;
 import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
+import it.pacs.rest.utils.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,10 +68,12 @@ public class GetMethod extends RestMethod {
         Object result = null;
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         CacheInterface cache = isCached ? restClient.getCache() : null;
+        String key = null;
         if (cache != null) {
-            long timestamp = cache.getUpdateTime(url);
-            if (timestamp > 0)
-                connection.setIfModifiedSince(timestamp);
+            key = buildCacheKey(args);
+            String etag = cache.getETag(key);
+            if (etag != null)
+                connection.setRequestProperty("If-None-Match", etag);
         }
         addHeaderParameters(connection, args);
         connection.connect();
@@ -79,17 +82,16 @@ public class GetMethod extends RestMethod {
             InputStream data;
             switch (status) {
                 case HttpURLConnection.HTTP_OK:
+                    String etag = connection.getHeaderField("ETag");
                     data = connection.getInputStream();
-                    if (cache != null) {
-                        // TODO InputStream cacheInputStream = cache.put(connection, data);
-                        InputStream cacheInputStream = cache.put(url, data);
+                    if (key != null && cache != null && etag != null) {
+                        InputStream cacheInputStream = cache.put(key, etag, data);
                         data.close();
                         data = cacheInputStream;
                     }
                     break;
                 case HttpURLConnection.HTTP_NOT_MODIFIED:
-                    // TODO data = cache != null ? cache.get(connection) : null;
-                    data = cache != null ? cache.get(url) : null;
+                    data = cache != null ? cache.get(key) : null;
                     break;
                 default:
                     return null;
@@ -103,5 +105,19 @@ public class GetMethod extends RestMethod {
             connection.disconnect();
         }
         return result;
+    }
+
+    /**
+     * Build a unique string to be used as key for the cache.
+     *
+     * @param args arguments passed to the method
+     * @return an MD5 hash
+     */
+    private String buildCacheKey(Object[] args) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(method.toGenericString()).append(restClient.getBaseUrl());
+        for (Object arg : args)
+            builder.append(arg);
+        return Utils.getMD5Sum(builder.toString());
     }
 }
