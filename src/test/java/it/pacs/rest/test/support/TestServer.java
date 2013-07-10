@@ -26,7 +26,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ public class TestServer {
 
     final Map<String, Integer> stats = new HashMap<String, Integer>();
 
-    Server server = new Server(8080);
+    Server server = new Server(9080);
 
     public TestServer() {
         server.setHandler(new TestHandler());
@@ -82,9 +82,11 @@ public class TestServer {
             if (target.startsWith("/test/method1")) {
                 handleTestMethod1(target, baseRequest, request, response);
                 baseRequest.setHandled(true);
-            }
-            if (target.startsWith("/test/method2")) {
+            } else if (target.startsWith("/test/method2")) {
                 handleTestMethod2(target, baseRequest, request, response);
+                baseRequest.setHandled(true);
+            } else if (target.startsWith("/test/method3") || target.startsWith("/test/method4")) {
+                handleTestMethod3(target, baseRequest, request, response);
                 baseRequest.setHandled(true);
             }
         }
@@ -116,6 +118,21 @@ public class TestServer {
             result.put("hp", request.getHeader("hp"));
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println(gson.toJson(result));
+        }
+
+        @SuppressWarnings("UnusedParameters")
+        private void handleTestMethod3(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_OK);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+            PrintWriter writer = response.getWriter();
+            String line = reader.readLine();
+            while (line != null) {
+                writer.println(line);
+                line = reader.readLine();
+            }
+            reader.close();
+            writer.close();
         }
 
     }

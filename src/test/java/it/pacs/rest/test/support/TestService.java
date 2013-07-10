@@ -18,14 +18,14 @@
  */
 package it.pacs.rest.test.support;
 
-import it.pacs.rest.annotatios.*;
+import it.pacs.rest.annotation.*;
 
 import java.util.Map;
 
 /**
  * @author Stefano Pacifici
  */
-@RestService("http://localhost:8080")
+@RestService("http://localhost:9080")
 public interface TestService {
     @GET
     @Path("/test/method1/{pp1}/code/{pp2}")
@@ -39,4 +39,12 @@ public interface TestService {
     @Path("/test/method2")
     @Cache
     String method2(@QueryParam("param") int param);
+
+    @POST
+    @Path("/test/method3")
+    Map<String, Object> method3(@NamedParam("param1") String param1, @NamedParam("param2") int param2, @NamedParam("param3") double param3);
+
+    @POST
+    @Path("/test/method4")
+    Person method4(Person person);
 }

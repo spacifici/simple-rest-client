@@ -18,7 +18,7 @@
  */
 package it.pacs.rest.factories.impl;
 
-import it.pacs.rest.annotatios.Cache;
+import it.pacs.rest.annotation.Cache;
 import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
 import it.pacs.rest.utils.Utils;
@@ -66,7 +66,7 @@ public class GetMethod extends RestMethod {
     public Object execute(Class clazz, Object[] args) throws IOException {
         URL url = buildUrl(args);
         Object result = null;
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        HttpURLConnection connection = restClient.openConnection(url);
         CacheInterface cache = isCached ? restClient.getCache() : null;
         String key = null;
         if (cache != null) {

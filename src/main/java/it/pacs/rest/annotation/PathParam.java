@@ -16,16 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package it.pacs.rest.annotatios;
+package it.pacs.rest.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE, ElementType.METHOD})
+/**
+ * Mark a parameter as a path parameter.<br>
+ * <p/>
+ * <pre>
+ * &#064;Path(&quot;/events/{id}/time&quot;)
+ * String getEventTime(@PathParam(&quot;id&quot;) int identifier);
+ * </pre>
+ * <p/>
+ * &#123;id&#125; will be substitute by identifier to generate the correct url. <br>
+ * <strong>The parameter type as to be a primitive type, a String or has to
+ * override the toString() method</strong>
+ *
+ * @author Stefano Pacifici
+ */
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Path {
-
-    String value() default "/";
+public @interface PathParam {
+    String value() default "";
 }

@@ -31,8 +31,8 @@ import junit.framework.TestCase;
  */
 public class RestClientInterfaceTest extends TestCase {
 
-    private static final String localHost = "http://localhost:8080";
-    private static final String localIP = "http://127.0.0.1:8080";
+    private static final String localHost = "http://localhost:9080";
+    private static final String localIP = "http://127.0.0.1:9080";
     private TestService service = RestClientFactory.createClient(TestService.class);
     private TestServer server;
 

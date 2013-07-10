@@ -18,7 +18,7 @@
  */
 package it.pacs.rest.interfaces;
 
-import it.pacs.rest.annotatios.RestService;
+import it.pacs.rest.annotation.RestService;
 
 import java.net.HttpURLConnection;
 import java.net.URL;

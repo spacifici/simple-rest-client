@@ -16,27 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package it.pacs.rest.annotatios;
+package it.pacs.rest.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Mark a parameter as an Header parameter.<br/>
- * A header parameter is a key value pair added to the http request header. It doesn't contribute to calculate cache
- * entry key.
- *
- * @author Stefano Pacifici
- */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HeaderParam {
-    /**
-     * The value of the header parameter as a string
-     *
-     * @return the header key
-     */
+public @interface QueryParam {
     String value() default "";
 }

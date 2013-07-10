@@ -19,13 +19,11 @@
 package it.pacs.rest.factories.impl;
 
 import com.google.gson.Gson;
-import it.pacs.rest.annotatios.HeaderParam;
-import it.pacs.rest.annotatios.Path;
-import it.pacs.rest.annotatios.PathParam;
-import it.pacs.rest.annotatios.QueryParam;
+import it.pacs.rest.annotation.*;
 import it.pacs.rest.interfaces.RestClientInterface;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -45,13 +43,12 @@ public abstract class RestMethod {
      * Use it to convert json to object
      */
     protected static final Gson gson = new Gson();
-
     protected final Method method;
     protected final RestClientInterface restClient;
-
     private QueryBuilder queryBuilder = new QueryBuilder();
     private PathBuilder pathBuilder = null;
     private HeaderBuilder headerBuilder = new HeaderBuilder();
+    private ContentBuilder contentBuilder = new ContentBuilder();
 
     public RestMethod(RestClientInterface restClient, Method method) {
         this.restClient = restClient;
@@ -66,25 +63,32 @@ public abstract class RestMethod {
     }
 
     /**
-     * Init path builder, query builder and headers map by scan method parameters annotations
+     * PathBuilderInit path builder, query builder and headers map by scan method parameters annotations
      */
     private void initParameters() {
         Annotation[][] paramsAnnotations = method.getParameterAnnotations();
         for (int i = 0; i < paramsAnnotations.length; i++) {
-            for (Annotation annotation : paramsAnnotations[i]) {
-                Class<?> annotationType = annotation.annotationType();
-                if (annotationType.equals(PathParam.class)
-                        && pathBuilder != null) {
-                    PathParam param = (PathParam) annotation;
-                    pathBuilder.addParam(param.value(), i);
-                }
-                if (annotationType.equals(QueryParam.class)) {
-                    QueryParam param = (QueryParam) annotation;
-                    queryBuilder.addParam(param.value(), i);
-                }
-                if (annotationType.equals(HeaderParam.class)) {
-                    HeaderParam param = (HeaderParam) annotation;
-                    headerBuilder.addParam(param.value(), i);
+            if (paramsAnnotations[i].length == 0) {
+                contentBuilder.addUnnamedParam(i);
+            } else {
+                for (Annotation annotation : paramsAnnotations[i]) {
+                    Class<?> annotationType = annotation.annotationType();
+                    if (annotationType.equals(PathParam.class)
+                            && pathBuilder != null) {
+                        PathParam param = (PathParam) annotation;
+                        pathBuilder.addParam(param.value(), i);
+                    } else if (annotationType.equals(QueryParam.class)) {
+                        QueryParam param = (QueryParam) annotation;
+                        queryBuilder.addParam(param.value(), i);
+                    } else if (annotationType.equals(HeaderParam.class)) {
+                        HeaderParam param = (HeaderParam) annotation;
+                        headerBuilder.addParam(param.value(), i);
+                    } else if (annotationType.equals(NamedParam.class)) {
+                        NamedParam param = (NamedParam) annotation;
+                        contentBuilder.addNamedParam(param.value(), i);
+                    } else {
+                        contentBuilder.addUnnamedParam(i);
+                    }
                 }
             }
         }
@@ -120,7 +124,6 @@ public abstract class RestMethod {
         return new URL(builder.toString());
     }
 
-
     /**
      * Add header parameters to the request
      *
@@ -129,6 +132,18 @@ public abstract class RestMethod {
      */
     protected void addHeaderParameters(HttpURLConnection connection, Object[] args) {
         headerBuilder.addHeaders(connection, args);
+    }
+
+    /**
+     * Attach content to the request (used for POST, PUT or PATH)
+     *
+     * @param stream the {@link OutputStream} to write the content to
+     * @param args   the arguments array from which the content is built
+     * @throws IOException
+     */
+    protected void buildRequestContent(OutputStream stream, Object[] args) throws IOException {
+        String body = contentBuilder.buildContent(args);
+        stream.write(body.getBytes());
     }
 
     /**
