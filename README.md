@@ -1,8 +1,10 @@
-# Introduction
+# Simple Rest Client
+
+## Introduction
 
 __Simple Rest Client__ is an experiment about a simple rest client with caching support. By using reflection and a proxy, it allows the user to use a json rest service by simply writing a java interface. It only supports json as data exchange format (by using [Gson](https://code.google.com/p/google-gson/)), and uses [OkHttp](https://github.com/square/okhttp) as HTTP client. You can use it also on Android.
 
-# How to use it
+## How to use it
 
 1. Declare a java interface 
   
@@ -66,13 +68,13 @@ __Simple Rest Client__ is an experiment about a simple rest client with caching 
     restClient.setBaseUrl("http://myotherbookstore.example.com/services");
   ```
 
-# Supported HTTP methods
+## Supported HTTP methods
 
 1. GET
 2. POST
 
 
-# TODO
+## TODO
 
 1. Add more HTTP methods (HEAD, PUT, DELETE, PATCH)
 2. Add xml data exchange format
