@@ -77,5 +77,8 @@ __Simple Rest Client__ is an experiment about a simple rest client with caching 
 ## TODO
 
 1. Add more HTTP methods (HEAD, PUT, DELETE, PATCH)
-2. Add xml data exchange format
-3. Add compile time class generation to prevent the use of a proxy and the massive reflection usage _(it sounds funny, probably it will go first)_
+2. Callback mechanism for exceptions thrown inside the service implementation
+3. Callback mechanism to handle HTTP responses not equals to 200
+4. OAuth support
+5. Add xml data exchange format
+6. Add compile time class generation to prevent the use of a proxy and the massive reflection usage _(it sounds funny, probably it will go first)_
