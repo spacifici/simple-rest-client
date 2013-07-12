@@ -22,6 +22,7 @@ import java.util.Map;
 /**
  * @author Stefano Pacifici
  */
+@SuppressWarnings("UnusedDeclaration")
 @RestService("http://localhost:9080")
 public interface TestService {
     @GET
@@ -44,4 +45,16 @@ public interface TestService {
     @POST
     @Path("/test/method4")
     Person method4(Person person);
+
+    @DELETE
+    @Path("/person/{id}/delete")
+    void deleteMethod(@QueryParam("id") int id);
+
+    @PUT
+    @Path("/person/{id}")
+    void putMethod(@PathParam("id") int id, Person person);
+
+    @PATCH
+    @Path("/person/{id}")
+    void patchMethod(@PathParam("id") int id, @NamedParam("name") String name);
 }

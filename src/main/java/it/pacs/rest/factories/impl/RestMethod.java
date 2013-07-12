@@ -37,6 +37,19 @@ import java.net.URL;
 public abstract class RestMethod {
 
     /**
+     * Supported HTTP methods enumeration
+     */
+    public enum HTTPMethod {
+        GET(true), POST(false), PUT(false), DELETE(false), PATCH(false);
+
+        public final boolean isCacheable;
+
+        private HTTPMethod(boolean isCacheable) {
+            this.isCacheable = isCacheable;
+        }
+    }
+
+    /**
      * Use it to convert json to object
      */
     protected static final Gson gson = new Gson();
@@ -142,6 +155,11 @@ public abstract class RestMethod {
         String body = contentBuilder.buildContent(args);
         stream.write(body.getBytes());
     }
+
+    /**
+     * @return the HTTP method name (ie GET, POST, PUT...)
+     */
+    abstract HTTPMethod getMethod();
 
     /**
      * Execute the HTTP request associated with this method

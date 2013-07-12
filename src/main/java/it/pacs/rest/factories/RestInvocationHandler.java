@@ -16,13 +16,9 @@
 package it.pacs.rest.factories;
 
 import com.squareup.okhttp.OkHttpClient;
-import it.pacs.rest.annotation.GET;
-import it.pacs.rest.annotation.POST;
-import it.pacs.rest.annotation.RestService;
+import it.pacs.rest.annotation.*;
 import it.pacs.rest.cache.SimpleMemoryCache;
-import it.pacs.rest.factories.impl.GetMethod;
-import it.pacs.rest.factories.impl.PostMethod;
-import it.pacs.rest.factories.impl.RestMethod;
+import it.pacs.rest.factories.impl.*;
 import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
 
@@ -72,8 +68,14 @@ class RestInvocationHandler<T> implements InvocationHandler,
         for (Method method : serviceInterface.getMethods()) {
             if (method.getAnnotation(GET.class) != null)
                 methods.put(method.toGenericString(), new GetMethod(this, method));
+            else if (method.getAnnotation(DELETE.class) != null)
+                methods.put(method.toGenericString(), new DeleteMethod(this, method));
             else if (method.getAnnotation(POST.class) != null)
                 methods.put(method.toGenericString(), new PostMethod(this, method));
+            else if (method.getAnnotation(PUT.class) != null)
+                methods.put(method.toGenericString(), new PutMethod(this, method));
+            else if (method.getAnnotation(PATCH.class) != null)
+                methods.put(method.toGenericString(), new PatchMethod(this, method));
         }
     }
 

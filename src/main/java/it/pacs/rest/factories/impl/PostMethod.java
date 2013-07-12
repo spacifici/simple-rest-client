@@ -34,6 +34,11 @@ public class PostMethod extends RestMethod {
         super(restClient, method);
     }
 
+    @Override
+    HTTPMethod getMethod() {
+        return HTTPMethod.POST;
+    }
+
     /**
      * Execute the HTTP request associated with this method
      *
@@ -48,7 +53,7 @@ public class PostMethod extends RestMethod {
         Object result = null;
         HttpURLConnection connection = restClient.openConnection(url);
         addHeaderParameters(connection, args);
-        connection.setRequestMethod("POST");
+        connection.setRequestMethod(getMethod().name());
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
         connection.setDoInput(true);

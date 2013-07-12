@@ -46,9 +46,13 @@ public class GetMethod extends RestMethod {
     public GetMethod(RestClientInterface restClient, Method method) {
         super(restClient, method);
 
-        // Fetch the reference for future use
         Cache cacheAnnotation = method.getAnnotation(Cache.class);
-        isCached = cacheAnnotation != null;
+        isCached = getMethod().isCacheable && cacheAnnotation != null;
+    }
+
+    @Override
+    HTTPMethod getMethod() {
+        return HTTPMethod.GET;
     }
 
     /**
@@ -64,6 +68,7 @@ public class GetMethod extends RestMethod {
         URL url = buildUrl(args);
         Object result = null;
         HttpURLConnection connection = restClient.openConnection(url);
+        connection.setRequestMethod(getMethod().name());
         CacheInterface cache = isCached ? restClient.getCache() : null;
         String key = null;
         if (cache != null) {
