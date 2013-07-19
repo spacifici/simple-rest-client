@@ -30,7 +30,7 @@ public class RestClientInterfaceTest extends TestCase {
 
     private static final String localHost = "http://localhost:9080";
     private static final String localIP = "http://127.0.0.1:9080";
-    private TestService service = RestClientFactory.createClient(TestService.class);
+    private TestService service = RestClientFactory.getClient(TestService.class);
     private TestServer server;
 
     @Override

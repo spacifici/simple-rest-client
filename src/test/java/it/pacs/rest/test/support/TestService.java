@@ -25,8 +25,15 @@ import java.util.Map;
 @SuppressWarnings("UnusedDeclaration")
 @RestService("http://localhost:9080")
 public interface TestService {
+
+    public static final int METHOD1_ID = 1;
+    public static final int METHOD2_ID = 2;
+    public static final int METHOD3_ID = 3;
+    public static final int METHOD4_ID = 4;
+
     @GET
     @Path("/test/method1/{pp1}/code/{pp2}")
+    @AsyncID(METHOD1_ID)
     Map<String, String> method1(@HeaderParam("hp") String headerParam,
                                 @PathParam("pp1") String pathParam1,
                                 @PathParam("pp2") String pathParam2,
@@ -36,14 +43,17 @@ public interface TestService {
     @GET
     @Path("/test/method2")
     @Cache
+    @AsyncID(METHOD2_ID)
     String method2(@QueryParam("param") int param);
 
     @POST
     @Path("/test/method3")
+    @AsyncID(METHOD3_ID)
     Map<String, Object> method3(@NamedParam("param1") String param1, @NamedParam("param2") int param2, @NamedParam("param3") double param3);
 
     @POST
     @Path("/test/method4")
+    @AsyncID(METHOD4_ID)
     Person method4(Person person);
 
     @DELETE

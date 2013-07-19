@@ -18,6 +18,7 @@ package it.pacs.rest.factories;
 import com.squareup.okhttp.OkHttpClient;
 import it.pacs.rest.annotation.*;
 import it.pacs.rest.cache.SimpleMemoryCache;
+import it.pacs.rest.exceptions.RestMethodException;
 import it.pacs.rest.factories.impl.*;
 import it.pacs.rest.interfaces.CacheInterface;
 import it.pacs.rest.interfaces.RestClientInterface;
@@ -90,8 +91,13 @@ class RestInvocationHandler<T> implements InvocationHandler,
         if (method.getDeclaringClass().equals(RestClientInterface.class))
             return method.invoke(this, args);
         RestMethod restMethod = methods.get(method.toGenericString());
-        if (restMethod != null)
-            return restMethod.execute(method.getReturnType(), args);
+        if (restMethod != null) {
+            try {
+                return restMethod.execute(method.getReturnType(), args);
+            } catch (Exception e) {
+                throw new RestMethodException(e);
+            }
+        }
         return null;
     }
 

@@ -32,7 +32,7 @@ public class POSTMethodTest extends TestCase {
     public static final String SURNAME = "Mouse";
 
     public TestServer server;
-    public TestService service = RestClientFactory.createClient(TestService.class);
+    public TestService service = RestClientFactory.getClient(TestService.class);
 
     @Override
     protected void setUp() throws Exception {

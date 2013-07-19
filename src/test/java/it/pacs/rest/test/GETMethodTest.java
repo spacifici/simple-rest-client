@@ -48,7 +48,7 @@ public class GETMethodTest extends TestCase {
     }
 
     public void testNormalGet() {
-        TestService service = RestClientFactory.createClient(TestService.class);
+        TestService service = RestClientFactory.getClient(TestService.class);
         assertNotNull(service);
         Map<String, String> result = service.method1(paramsMap.get("hp"),
                 paramsMap.get("pp1"),
@@ -63,7 +63,7 @@ public class GETMethodTest extends TestCase {
     }
 
     public void testCachedGet() {
-        TestService service = RestClientFactory.createClient(TestService.class);
+        TestService service = RestClientFactory.getClient(TestService.class);
         assertNotNull(service);
         String methodUri = "/test/method2?param=12";
         String result1 = service.method2(12);
